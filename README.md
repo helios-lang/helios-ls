@@ -4,15 +4,15 @@
 
 # Helios Language Server [![CI][badge]][ci]
 
-The Helios Language Server is an intermediary between an editor or IDE and the
-Helios compiler. It implements the [Language Server Protocol][language-server-protocol],
-which allows us to provide Helios with common editor functionality such as
-autocomplete, go-to definitions and find-all-references in one centralised
-location.
+The Helios Language Server (Helios-LS) is an intermediary between an editor and
+the [Helios programming language][helios]. It implements the [Language Server
+Protocol][language-server-protocol], which easily provides Helios with essential
+editor functionalities such as autocomplete, go-to definitions and
+find-all-references.
 
 This project is still in its early stages of development. So far, only a limited
-functionality is provided. You may see the progress of the project under the
-[Progress](#Progress) section.
+number of features is provided. You may see the progress of the project under
+the [Progress](#Progress) section.
 
 ## Building and testing
 
@@ -38,6 +38,10 @@ mentioned.
 
 ## Progress
 
+The following is a list of all the completed and planned methods in the Language
+Server Protocol. Those with a tick in the checkbox beside them have been
+completed but may still be subject to implementation changes in the future.
+
 - [x] `initialize`
 - [x] `textdocument/didOpen`
 - [x] `textdocument/didChange`
@@ -58,5 +62,6 @@ Attribution 4.0 International License][cc-license].
 [badge]: https://github.com/helios-lang/helios-ls/workflows/CI/badge.svg
 [cc-license]: http://creativecommons.org/licenses/by/4.0/
 [ci]: https://github.com/helios-lang/helios-ls/actions?query=workflow:%22CI%22
+[helios]: https://github.com/helios-lang/helios
 [language-server-protocol]: https://microsoft.github.io/language-server-protocol/
 [vscode-helios-github]: https://github.com/helios-lang/vscode-helios
