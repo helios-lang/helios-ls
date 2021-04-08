@@ -15,7 +15,9 @@ fn __start() -> Result<()> {
     let (connection, threads) = connection::stdio();
 
     let mut state = State::new(connection.sender);
-    Server::new(connection.receiver, &mut state).initialize()?.run()?;
+    Server::new(connection.receiver, &mut state)
+        .initialize()?
+        .run()?;
 
     threads.join()?;
     log::info!("Connection to client has closed");

@@ -8,9 +8,8 @@ use crate::state::State;
 use crate::Result;
 use flume::Receiver;
 
-/// The server side of the language server connection.
+/// The uninitialized server side of the language server connection.
 pub struct Server<'a> {
-    did_initialize: bool,
     receiver: Receiver<Message>,
     state: &'a mut State,
 }
@@ -18,50 +17,47 @@ pub struct Server<'a> {
 impl<'a> Server<'a> {
     /// Constructs a new `Server` with the given receiver channel and state.
     pub fn new(receiver: Receiver<Message>, state: &'a mut State) -> Self {
-        Self {
-            did_initialize: false,
-            receiver,
-            state,
-        }
+        Self { receiver, state }
     }
 
-    /// Initializes a connection between the server and client, erroring if the
-    /// server doesn't receive an `initialize` request from the client or it
-    /// fails to send an `initialized` response.
-    pub fn initialize(mut self) -> Result<Self> {
+    /// Constructs a new [`InitializedServer`] that establishes a successful
+    /// connection between the server and client. This method will return an
+    /// error if it doesn't receive an `initialize` request from the client or
+    /// the server fails to send an `initialized` request.
+    pub fn initialize(self) -> Result<InitializedServer<'a>> {
         match self.receiver.recv()? {
             Message::Request(request) if request.is_initialize() => {
-                self.handle_request(request)?;
-                self.did_initialize = true;
+                use lsp_types::request::Initialize;
+                RequestDispatcher::new(request, self.state)
+                    .on::<Initialize>(handlers::initialize)?
+                    .finish();
             }
             message => {
                 let message = format!(
                     "expected initialize request, but found {:?}",
                     message
                 );
-
                 return Err(ProtocolError(message).into());
             }
         }
 
-        Ok(Self {
-            did_initialize: true,
-            ..self
+        Ok(InitializedServer {
+            receiver: self.receiver,
+            state: self.state,
         })
     }
+}
 
+/// The initialized server side of the language server connection.
+pub struct InitializedServer<'a> {
+    receiver: Receiver<Message>,
+    state: &'a mut State,
+}
+
+impl<'a> InitializedServer<'a> {
     /// Starts the main loop of the server.
     pub fn run(mut self) -> Result<()> {
         while let Ok(message) = self.receiver.recv() {
-            if !self.did_initialize {
-                log::warn!(
-                    "Cannot process received message because the connection to \
-                     the client has not been properly initialized. Waiting for \
-                     the `initialize` message..."
-                );
-                continue;
-            }
-
             match message {
                 Message::Request(r) => self.handle_request(r)?,
                 Message::Notification(n) if n.is_exit() => {
@@ -79,7 +75,7 @@ impl<'a> Server<'a> {
     fn handle_request(&mut self, req: Request) -> Result<()> {
         use lsp_types::request::*;
         RequestDispatcher::new(req, self.state)
-            .on::<Initialize>(handlers::initialize)?
+            // .on::<Initialize>(handlers::initialize)?
             .on::<Shutdown>(handlers::shutdown)?
             .on::<Completion>(handlers::completion)?
             .on::<HoverRequest>(handlers::hover)?
