@@ -60,8 +60,8 @@ Attribution 4.0 International License][cc-license].
 
 [apache-license]: http://www.apache.org/licenses/LICENSE-2.0
 [badge]: https://github.com/helios-lang/helios-ls/workflows/CI/badge.svg
-[cc-license]: http://creativecommons.org/licenses/by/4.0/
+[cc-license]: http://creativecommons.org/licenses/by/4.0
 [ci]: https://github.com/helios-lang/helios-ls/actions?query=workflow:%22CI%22
 [helios]: https://github.com/helios-lang/helios
-[language-server-protocol]: https://microsoft.github.io/language-server-protocol/
+[language-server-protocol]: https://microsoft.github.io/language-server-protocol
 [vscode-helios-github]: https://github.com/helios-lang/vscode-helios

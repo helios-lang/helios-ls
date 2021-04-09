@@ -1,14 +1,16 @@
+//! The orchestrator of the Helios language server responsible for handling
+//! requests and notifications sent between the client and server.
+
 mod dispatcher;
 mod handlers;
 
 use self::dispatcher::{NotificationDispatcher, RequestDispatcher};
-use crate::error::ProtocolError;
-use crate::protocol::{Message, Notification, Request};
+use crate::protocol::{ErrorCode, Message, Notification, Request, Response};
 use crate::state::State;
 use crate::Result;
 use flume::Receiver;
 
-/// The uninitialized server side of the language server connection.
+/// The server side of the language server connection.
 pub struct Server<'a> {
     receiver: Receiver<Message>,
     state: &'a mut State,
@@ -21,23 +23,57 @@ impl<'a> Server<'a> {
     }
 
     /// Constructs a new [`InitializedServer`] that establishes a successful
-    /// connection between the server and client. This method will return an
-    /// error if it doesn't receive an `initialize` request from the client or
-    /// the server fails to send an `initialized` request.
+    /// connection between the server and client.
+    ///
+    /// # Error handling
+    ///
+    /// As per the [Language Server Protocol Specification], this method will
+    /// send an error response in the case that the server receives some message
+    /// other than an `initialize` request. Specifically, it will send an error
+    /// with `code: -32002`, which the client can handle appropriately. In the
+    /// meantime, this method will continue listening for the `initialize`
+    /// request.
+    ///
+    /// Notifications, on the other hand, will be ignored completely. A warning
+    /// message may be printed notifying you of this.
+    ///
+    /// [Language Server Protocol Specification]: https://microsoft.github.io/language-server-protocol/specifications/specification-current/#initialize
     pub fn initialize(self) -> Result<InitializedServer<'a>> {
-        match self.receiver.recv()? {
-            Message::Request(request) if request.is_initialize() => {
-                use lsp_types::request::Initialize;
-                RequestDispatcher::new(request, self.state)
-                    .on::<Initialize>(handlers::initialize)?
-                    .finish();
-            }
-            message => {
-                let message = format!(
-                    "expected initialize request, but found {:?}",
-                    message
-                );
-                return Err(ProtocolError(message).into());
+        while let Ok(message) = self.receiver.recv() {
+            match message {
+                Message::Request(req) if req.is_initialize() => {
+                    // Building the initialize response
+                    let snapshot = self.state.snapshot();
+                    let params = serde_json::from_value(req.params)?;
+                    let result = handlers::initialize(snapshot, params)?;
+                    let response = Response::new_ok(req.id, result);
+
+                    // Send the initialize response
+                    self.state.send(response);
+                }
+                Message::Notification(not) if not.is_initialized() => {
+                    let params = serde_json::from_value(not.params)?;
+                    handlers::initialized(self.state, params);
+                    // The server has been initialized so we can exit the loop
+                    break;
+                }
+                Message::Request(req) => {
+                    let code = ErrorCode::ServerNotInitialized;
+                    let message = format!(
+                        "expected an `initialize` request but received `{}`",
+                        req.method
+                    );
+                    let response = Response::new_error(req.id, code, message);
+                    self.state.send(response);
+                }
+                _ => {
+                    log::warn!(
+                        "Helios-LS expected an `initialize` request but \
+                         instead received the following message: {:?}. This \
+                         message will be ignored.",
+                        message
+                    );
+                }
             }
         }
 
@@ -48,7 +84,8 @@ impl<'a> Server<'a> {
     }
 }
 
-/// The initialized server side of the language server connection.
+/// An initialized server that guarantees that the connection between the client
+/// and server has been successfully initialized.
 pub struct InitializedServer<'a> {
     receiver: Receiver<Message>,
     state: &'a mut State,
@@ -59,12 +96,12 @@ impl<'a> InitializedServer<'a> {
     pub fn run(mut self) -> Result<()> {
         while let Ok(message) = self.receiver.recv() {
             match message {
-                Message::Request(r) => self.handle_request(r)?,
-                Message::Notification(n) if n.is_exit() => {
+                Message::Request(req) => self.handle_request(req)?,
+                Message::Notification(not) if not.is_exit() => {
                     log::trace!("Exiting...");
                     break;
                 }
-                Message::Notification(n) => self.handle_notification(n)?,
+                Message::Notification(not) => self.handle_notification(not)?,
                 _ => log::info!("Unhandled message: {:?}", message),
             }
         }
@@ -75,7 +112,6 @@ impl<'a> InitializedServer<'a> {
     fn handle_request(&mut self, req: Request) -> Result<()> {
         use lsp_types::request::*;
         RequestDispatcher::new(req, self.state)
-            // .on::<Initialize>(handlers::initialize)?
             .on::<Shutdown>(handlers::shutdown)?
             .on::<Completion>(handlers::completion)?
             .on::<HoverRequest>(handlers::hover)?

@@ -1,3 +1,6 @@
+//! Module responsible for providing the connection between the client and
+//! server of the language server.
+
 use crate::protocol::Message;
 use flume::{Receiver, Sender};
 use std::io;

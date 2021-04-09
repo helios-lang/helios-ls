@@ -1,8 +1,14 @@
-mod connection;
-mod error;
-mod protocol;
-mod server;
-mod state;
+//! The Helios Language Server is an intermediary between an editor and the
+//! Helios compiler. It implements the [Language Server Protocol], which allows
+//! us to provide Helios with common editor functionality such as autocomplete,
+//! go-to definitions and find-all-references in one centralised location.
+//!
+//! [Language Server Protocol]: https://microsoft.github.io/language-server-protocol
+
+pub mod connection;
+pub mod protocol;
+pub mod server;
+pub mod state;
 
 use server::Server;
 use state::State;

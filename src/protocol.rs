@@ -1,9 +1,10 @@
-#![allow(dead_code)]
+//! Abstractions over messages sent and received by the client and server.
 
 use serde::{Deserialize, Serialize};
 use std::fmt::{self, Debug, Display};
 use std::io::{self, BufRead, Write};
 
+/// A 32-bit signed integer or a string that represents the id of a request.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RequestId {
@@ -54,6 +55,7 @@ pub struct Request {
 }
 
 impl Request {
+    #[allow(dead_code)]
     pub fn new(
         id: impl Into<RequestId>,
         method: impl Into<String>,
@@ -66,6 +68,7 @@ impl Request {
         }
     }
 
+    #[allow(dead_code)]
     pub fn new_without_params(
         id: impl Into<RequestId>,
         method: impl Into<String>,
@@ -77,6 +80,7 @@ impl Request {
         self.method == "initialize"
     }
 
+    #[allow(dead_code)]
     pub fn is_shutdown(&self) -> bool {
         self.method == "shutdown"
     }
@@ -92,8 +96,8 @@ impl Request {
 pub struct Response {
     /// The request id.
     pub(crate) id: RequestId,
-    /// The result of a request. This member is **REQUIRED** on success. This
-    /// member **MUST NOT** exist if there was an error invoking the method.
+    /// The result of a request. This field is **REQUIRED** on success but
+    /// **MUST NOT** exist if there was an error invoking the method.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub(crate) result: Option<serde_json::Value>,
     /// The error object in case a request fails.
@@ -129,6 +133,7 @@ impl Response {
     }
 }
 
+/// An error object in case a response fails.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ResponseError {
     /// A number indicating the error type that occurred.
@@ -144,12 +149,15 @@ pub struct ResponseError {
 #[derive(Clone, Copy, Debug)]
 #[allow(unused)]
 pub enum ErrorCode {
-    // Defined by JSON RPC
     ParseError = -32700,
     InvalidRequest = -32600,
     MethodNotFound = -32601,
     InvalidParams = -32602,
     InternalError = -32603,
+    /// Error code indicating that a server received a notification or request
+    /// before the server has received the `initialize` request.
+    ServerNotInitialized = -32002,
+    UnknownErrorCode = -32001,
 }
 
 /// A notification message.
@@ -174,13 +182,17 @@ impl Notification {
         }
     }
 
+    pub fn is_initialized(&self) -> bool {
+        self.method == "initialized"
+    }
+
     pub fn is_exit(&self) -> bool {
         self.method == "exit"
     }
 }
 
-/// An enumeration that can either be a [`Request`], a [`Response`] or a
-/// [`Notification`] as defined by the JSON-RPC.
+/// An enumeration of a message type that can either be a [`Request`], a
+/// [`Response`] or a [`Notification`] as defined by the JSON-RPC.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum Message {

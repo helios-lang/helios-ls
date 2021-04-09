@@ -33,7 +33,7 @@ impl<'a> RequestDispatcher<'a> {
             _ => return Ok(self),
         };
 
-        // TODO: Move computation to separate thread and allow for error
+        // TODO: Perhaps move computation to separate thread and allow for error
         // recovery (and possibly sending an error response back to the client).
         let snapshot = self.state.snapshot();
         let result = handler(snapshot, params)?;

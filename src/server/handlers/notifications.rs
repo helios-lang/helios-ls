@@ -135,7 +135,7 @@ pub fn did_change_text_document(
     );
 }
 
-/// Applies `TextDocumentContentChangeEvent` changes over a provided string,
+/// Applies [`TextDocumentContentChangeEvent`] changes over a provided string,
 /// returning a new string with the changes applied.
 fn apply_content_changes(
     old_text: &str,
