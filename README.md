@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.svg" alt="logo" align="center">
+  <img src="assets/logo-ls.svg" alt="logo" align="center">
 </p>
 
 # Helios Language Server [![CI][badge]][ci]

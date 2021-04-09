@@ -77,7 +77,6 @@ pub fn stdio() -> (Connection, IoThreads) {
         while let Some(msg) = Message::read(&mut stdin)? {
             let exit = matches!(&msg, Message::Notification(n) if n.is_exit());
             reader_tx.send(msg).expect("Failed to send to reader");
-
             if exit {
                 break;
             }
