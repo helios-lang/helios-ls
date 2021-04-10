@@ -3,7 +3,7 @@ use crate::state::{State, StateSnapshot};
 use crate::Result;
 use serde::{de::DeserializeOwned, Serialize};
 
-pub struct RequestDispatcher<'a> {
+pub(crate) struct RequestDispatcher<'a> {
     request: Option<Request>,
     state: &'a mut State,
 }
@@ -19,7 +19,7 @@ impl<'a> RequestDispatcher<'a> {
         }
     }
 
-    pub fn on<R>(
+    pub(crate) fn on<R>(
         &mut self,
         handler: fn(StateSnapshot, R::Params) -> Result<R::Result>,
     ) -> Result<&mut Self>
@@ -29,7 +29,7 @@ impl<'a> RequestDispatcher<'a> {
         R::Result: Serialize + std::fmt::Debug + 'static,
     {
         let (id, params) = match self.parse_request::<R>() {
-            Some(it) => it,
+            Some(request) => request,
             _ => return Ok(self),
         };
 
@@ -43,7 +43,7 @@ impl<'a> RequestDispatcher<'a> {
         Ok(self)
     }
 
-    pub fn finish(&mut self) {
+    pub(crate) fn finish(&mut self) {
         if let Some(request) = self.request.take() {
             log::warn!("Unhandled request: {:?}", request);
         }
@@ -65,13 +65,13 @@ impl<'a> RequestDispatcher<'a> {
     }
 }
 
-pub struct NotificationDispatcher<'a> {
+pub(crate) struct NotificationDispatcher<'a> {
     notification: Option<Notification>,
     state: &'a mut State,
 }
 
 impl<'a> NotificationDispatcher<'a> {
-    pub fn new(
+    pub(crate) fn new(
         notification: impl Into<Option<Notification>>,
         state: &'a mut State,
     ) -> Self {
@@ -81,13 +81,16 @@ impl<'a> NotificationDispatcher<'a> {
         }
     }
 
-    pub fn on<N>(&mut self, handler: fn(&mut State, N::Params)) -> &mut Self
+    pub(crate) fn on<N>(
+        &mut self,
+        handler: fn(&mut State, N::Params),
+    ) -> &mut Self
     where
         N: lsp_types::notification::Notification + 'static,
         N::Params: DeserializeOwned + Send + 'static,
     {
         let params = match self.parse_notification::<N>() {
-            Some(it) => it,
+            Some(notification) => notification,
             _ => return self,
         };
 
@@ -96,7 +99,7 @@ impl<'a> NotificationDispatcher<'a> {
         self
     }
 
-    pub fn finish(&mut self) {
+    pub(crate) fn finish(&mut self) {
         if let Some(notification) = self.notification.take() {
             log::warn!("Unhandled notification: {:?}", notification);
         }

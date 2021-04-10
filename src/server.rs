@@ -35,7 +35,7 @@ impl<'a> Server<'a> {
     /// request.
     ///
     /// Notifications, on the other hand, will be ignored completely. A warning
-    /// message may be printed notifying you of this.
+    /// message may be printed notifying the client of this.
     ///
     /// [Language Server Protocol Specification]: https://microsoft.github.io/language-server-protocol/specifications/specification-current/#initialize
     pub fn initialize(self) -> Result<InitializedServer<'a>> {
@@ -97,12 +97,9 @@ impl<'a> InitializedServer<'a> {
         while let Ok(message) = self.receiver.recv() {
             match message {
                 Message::Request(req) => self.handle_request(req)?,
-                Message::Notification(not) if not.is_exit() => {
-                    log::trace!("Exiting...");
-                    break;
-                }
+                Message::Notification(not) if not.is_exit() => break,
                 Message::Notification(not) => self.handle_notification(not)?,
-                _ => log::info!("Unhandled message: {:?}", message),
+                _ => log::warn!("Unhandled message: {:?}", message),
             }
         }
 

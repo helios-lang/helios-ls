@@ -163,8 +163,8 @@ fn apply_content_changes(
 /// Calculates the byte offset range over a UTF-16-encoded string (in bytes)
 /// from the given [`lsp_types::Range`].
 fn range_over(bytes: &Vec<u16>, range: lsp_types::Range) -> Range<usize> {
-    let (s_l, s_c) = (range.start.line, range.start.character);
-    let (e_l, e_c) = (range.end.line, range.end.character);
+    let (s_ln, s_ch) = (range.start.line, range.start.character);
+    let (e_ln, e_ch) = (range.end.line, range.end.character);
 
     fn line_indices(bytes: &Vec<u16>) -> Vec<usize> {
         std::iter::once(0)
@@ -180,8 +180,8 @@ fn range_over(bytes: &Vec<u16>, range: lsp_types::Range) -> Range<usize> {
     }
 
     let indices = line_indices(bytes);
-    let start = indices[s_l as usize] + s_c as usize;
-    let end = indices[e_l as usize] + e_c as usize;
+    let start = indices[s_ln as usize] + s_ch as usize;
+    let end = indices[e_ln as usize] + e_ch as usize;
 
     start..end
 }
@@ -189,7 +189,7 @@ fn range_over(bytes: &Vec<u16>, range: lsp_types::Range) -> Range<usize> {
 /// The document save notification is sent from the client to the server when
 /// the document was saved in the client.
 pub fn did_save_text_document(_: &mut State, _: DidSaveTextDocumentParams) {
-    // Nothing to do...
+    log::trace!("TODO: textDocument/didSave")
 }
 
 pub fn did_change_configuration(
