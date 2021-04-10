@@ -9,8 +9,8 @@ edition = "2018"
 clap = "3.0.0-beta.2"
 env_logger = "0.8.3"
 flume = "0.10.2"
-helios-diagnostics = { git = "https://github.com/helios-lang/helios", branch = "indentation" }
-helios-query = { git = "https://github.com/helios-lang/helios", branch = "indentation" }
+helios-diagnostics = { git = "https://github.com/helios-lang/helios", branch = "develop" }
+helios-query = { git = "https://github.com/helios-lang/helios", branch = "develop" }
 log = "0.4.14"
 lsp-types = "0.89.0"
 salsa = "0.16.0"

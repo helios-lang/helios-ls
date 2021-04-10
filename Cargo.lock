@@ -198,7 +198,7 @@ dependencies = [
 [[package]]
 name = "helios-diagnostics"
 version = "0.2.0"
-source = "git+https://github.com/helios-lang/helios?branch=indentation#46fb59651f8d48b8503c04ced3a1f39624d86dfc"
+source = "git+https://github.com/helios-lang/helios?branch=develop#300119e76dff9c5c916d260edac9f30f07c73718"
 dependencies = [
  "colored",
  "helios-formatting",
@@ -209,7 +209,7 @@ dependencies = [
 [[package]]
 name = "helios-formatting"
 version = "0.2.0"
-source = "git+https://github.com/helios-lang/helios?branch=indentation#46fb59651f8d48b8503c04ced3a1f39624d86dfc"
+source = "git+https://github.com/helios-lang/helios?branch=develop#300119e76dff9c5c916d260edac9f30f07c73718"
 dependencies = [
  "colored",
 ]
@@ -233,7 +233,7 @@ dependencies = [
 [[package]]
 name = "helios-parser"
 version = "0.2.0"
-source = "git+https://github.com/helios-lang/helios?branch=indentation#46fb59651f8d48b8503c04ced3a1f39624d86dfc"
+source = "git+https://github.com/helios-lang/helios?branch=develop#300119e76dff9c5c916d260edac9f30f07c73718"
 dependencies = [
  "drop_bomb",
  "expect-test",
@@ -248,7 +248,7 @@ dependencies = [
 [[package]]
 name = "helios-query"
 version = "0.2.0"
-source = "git+https://github.com/helios-lang/helios?branch=indentation#46fb59651f8d48b8503c04ced3a1f39624d86dfc"
+source = "git+https://github.com/helios-lang/helios?branch=develop#300119e76dff9c5c916d260edac9f30f07c73718"
 dependencies = [
  "flume",
  "helios-diagnostics",
@@ -259,7 +259,7 @@ dependencies = [
 [[package]]
 name = "helios-syntax"
 version = "0.2.0"
-source = "git+https://github.com/helios-lang/helios?branch=indentation#46fb59651f8d48b8503c04ced3a1f39624d86dfc"
+source = "git+https://github.com/helios-lang/helios?branch=develop#300119e76dff9c5c916d260edac9f30f07c73718"
 dependencies = [
  "expect-test",
  "helios-formatting",
